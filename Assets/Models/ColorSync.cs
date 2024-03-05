@@ -52,6 +52,7 @@ public class ColorSync : RealtimeComponent<ColorSyncModel>
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using TMPro;
 using Normal.Realtime;
 
 public class ColorSync : RealtimeComponent<ColorSyncModel>
@@ -59,6 +60,9 @@ public class ColorSync : RealtimeComponent<ColorSyncModel>
     private Color newColor;
     private Color currentColor;
     private MeshRenderer meshRenderer;
+    private string text;
+
+    public TMP_InputField selectedInputField;
 
     void Start()
     {
@@ -75,6 +79,20 @@ public class ColorSync : RealtimeComponent<ColorSyncModel>
         }
         Debug.Log("Set model color to be currentColor");
         model.color = currentColor;
+        text = "";
+        model.text = text;
+    }
+
+    private void Update()
+    {
+        string currentText = selectedInputField.text;
+        if (currentText != text)
+        {
+            Debug.Log("Text box was updated");
+            model.text = currentText;
+            text = currentText;
+        }
+
     }
     // Method to change the color of the object's material
     public void ChangeMaterialColor()
@@ -101,6 +119,7 @@ public class ColorSync : RealtimeComponent<ColorSyncModel>
 
     protected override void OnRealtimeModelReplaced(ColorSyncModel previousModel, ColorSyncModel currentModel)
     {
+        /*
         if (previousModel != null)
             previousModel.colorDidChange -= DidColorChange;
 
@@ -114,10 +133,45 @@ public class ColorSync : RealtimeComponent<ColorSyncModel>
         }
 
         currentModel.colorDidChange += DidColorChange;
+        */
+        if (previousModel != null)
+        {
+            previousModel.colorDidChange -= DidColorChange;
+            previousModel.textDidChange -= DidTextChange;
+        }
+
+        // Set the initial color and text of the object's material to match the Realtime model's color and text
+        UpdateMeshRendererColor();
+        UpdateTextMeshText();
+
+        if (currentModel.isFreshModel)
+        {
+            // Set the initial color and text of the Realtime model to match the object's material color and text
+            currentModel.color = currentColor;
+            currentModel.text = "testing";
+        }
+
+        currentModel.colorDidChange += DidColorChange;
+        currentModel.textDidChange += DidTextChange;
     }
 
     private void DidColorChange(ColorSyncModel mode, Color value)
     {
         UpdateMeshRendererColor();
     }
+
+    private void DidTextChange(ColorSyncModel nameSyncModel, string value)
+    {
+        UpdateTextMeshText();
+    }
+
+    private void UpdateTextMeshText()
+    {
+        if (selectedInputField != null)
+        {
+            Debug.Log("Text content is synchronized.");
+            selectedInputField.text = model.text;
+        }
+    }
+
 }
